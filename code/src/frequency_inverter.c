@@ -1,5 +1,7 @@
 #include "frequency_inverter.h"
 
+double amplitude;
+
 void configure_inverter(TIM_HandleTypeDef *htim, TIM_HandleTypeDef *htim_int)
 {
     // Start PWM generation
@@ -10,11 +12,15 @@ void configure_inverter(TIM_HandleTypeDef *htim, TIM_HandleTypeDef *htim_int)
 
     // Configure timer to count microseconds for sine wave generation(0us to wave period)
     __HAL_RCC_TIM2_CLK_ENABLE();
-    htim_int->Init.Prescaler = 1 / FREQUENCY * (SystemCoreClock / (htim_int->Init.Period + 1));
+    htim_int->Init.Prescaler = 1 / SINE_WAVE_FREQUENCY * (SystemCoreClock / (htim_int->Init.Period + 1));
     HAL_TIM_Base_Start(htim_int);
+
+    // Calculate max amplitude of sine wave
+    amplitude = ((1.0 / PWM_FREQUENCY) / (1.0 / (SystemCoreClock / htim->Init.Prescaler + 1)));
+    amplitude *= 0.90;
 }
 
-double calculateSineWave(int freq, double time, double amplitude, double phase)
+double calculateSineWave(int freq, double time, double phase)
 {
     return amplitude * sin(2 * M_PI * freq * time + phase);
 }
@@ -22,8 +28,8 @@ double calculateSineWave(int freq, double time, double amplitude, double phase)
 void process_inverter()
 {
     double time1 = ((double)TIM2->CNT) * ((TIM2->PSC + 1) / (double)SystemCoreClock);
-    double sineWave1 = calculateSineWave(FREQUENCY, time1, AMPLITUDE - (AMPLITUDE * 0.10), 0);
-    double sineWave2 = calculateSineWave(FREQUENCY, time1, AMPLITUDE - (AMPLITUDE * 0.10), 90);
+    double sineWave1 = calculateSineWave(SINE_WAVE_FREQUENCY, time1, 0);
+    double sineWave2 = calculateSineWave(SINE_WAVE_FREQUENCY, time1, 90);
 
     if (sineWave1 < 0)
     {
