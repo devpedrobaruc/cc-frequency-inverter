@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define SINE_WAVE_FREQUENCY 100
+#define SINE_WAVE_FREQUENCY 50
 #define PWM_FREQUENCY 30000.0
 
 void configure_inverter(TIM_HandleTypeDef *htim, TIM_HandleTypeDef *htim_int);
